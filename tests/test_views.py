@@ -5,6 +5,7 @@ from time import sleep
 from django.contrib.auth.models import User
 
 from rest_framework import status
+from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from rest_framework_expiring_authtoken.models import ExpiringToken
@@ -19,6 +20,7 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
         self.username = 'test'
         self.email = 'test@test.com'
         self.password = 'test'
+        self.url = reverse('auth-token')
         self.user = User.objects.create_user(
             username=self.username,
             email=self.email,
@@ -30,7 +32,7 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
         token = ExpiringToken.objects.create(user=self.user)
 
         response = self.client.post(
-            '/obtain-token/',
+            self.url,
             {
                 'username': self.username,
                 'password': self.password
@@ -45,7 +47,7 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
     def test_post_create_token(self):
         """Check token is created if none exists."""
         response = self.client.post(
-            '/obtain-token/',
+            self.url,
             {
                 'username': self.username,
                 'password': self.password
@@ -61,7 +63,7 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
 
     def test_post_no_credentials(self):
         """Check POST request with no credentials fails."""
-        response = self.client.post('/obtain-token/')
+        response = self.client.post(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data,
@@ -74,7 +76,7 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
     def test_post_wrong_credentials(self):
         """Check POST request with wrong credentials fails."""
         response = self.client.post(
-            '/obtain-token/',
+            self.url,
             {
                 'username': self.username,
                 'password': 'wrong'
@@ -99,7 +101,7 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
         with self.settings(EXPIRING_TOKEN_LIFESPAN=timedelta(milliseconds=1)):
             sleep(0.001)
             response = self.client.post(
-                '/obtain-token/',
+                self.url,
                 {
                     'username': self.username,
                     'password': self.password
@@ -114,3 +116,18 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
         self.assertEqual(token.user, self.user)
         self.assertEqual(response.data['token'], token.key)
         self.assertTrue(key_1 != key_2)
+
+    def test_delete_token(self):
+        _ = ExpiringToken.objects.create(user=self.user)
+        self.assertEqual(ExpiringToken.objects.count(), 1)
+        
+        response = self.client.delete(
+            '/auth-token/',
+            {
+                'username': self.username,
+                'password': self.password
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(ExpiringToken.objects.count(), 0)

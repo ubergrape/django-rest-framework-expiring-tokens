@@ -3,10 +3,11 @@
 Classes:
     ObtainExpiringAuthToken: View to provide tokens to clients.
 """
+from django.http import Http404
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT
 
 from rest_framework_expiring_authtoken.models import ExpiringToken
 
@@ -22,7 +23,7 @@ class ObtainExpiringAuthToken(ObtainAuthToken):
         serializer = AuthTokenSerializer(data=request.data)
 
         if serializer.is_valid():
-            token, _ = ExpiringToken.objects.get_or_create(
+            token, _ = self.model.objects.get_or_create(
                 user=serializer.validated_data['user']
             )
 
@@ -38,4 +39,20 @@ class ObtainExpiringAuthToken(ObtainAuthToken):
 
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-obtain_expiring_auth_token = ObtainExpiringAuthToken.as_view()
+    def delete(self, request):
+        serializer = AuthTokenSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+        try:
+            token = self.model.objects.get(
+                user=serializer.validated_data['user']
+            )
+            token.delete()
+        except ExpiringToken.DoesNotExist:
+            raise Http404
+
+        return Response(status=HTTP_204_NO_CONTENT)
+
+
+auth_token_view = ObtainExpiringAuthToken.as_view()

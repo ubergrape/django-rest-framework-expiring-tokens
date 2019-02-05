@@ -1,8 +1,8 @@
 """URL conf for testing Expiring Tokens."""
 from django.conf.urls import url
 
-from rest_framework_expiring_authtoken.views import obtain_expiring_auth_token
+from rest_framework_expiring_authtoken.views import auth_token_view
 
 urlpatterns = [
-    url(r'^obtain-token/$', obtain_expiring_auth_token),
+    url(r'^auth-token/$', auth_token_view, name='auth-token'),
 ]
