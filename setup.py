@@ -35,11 +35,11 @@ setup(
     license='BSD',
     packages=find_packages(exclude=['tests*']),
     install_requires=[
-        'djangorestframework>=3.2.3,<=3.4.6'
+        'djangorestframework>=3.9.0'
     ],
     test_suite='runtests.run',
     tests_require=[
-        'Django>=1.8.14,<=1.10.1'
+        'Django>=2.1.5'
     ],
     zip_safe=False,
     classifiers=[
