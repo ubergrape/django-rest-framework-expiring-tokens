@@ -96,6 +96,9 @@ The `obtain_expiring_auth_token` view works exactly the same as the `obtain_auth
  * [James Ritchie](https://github.com/JamesRitchie)
  * [fcasas](https://github.com/fcasas)
 
+## run tests
+pipenv run python runtests.py
+
 ## Changelog
 
  * 0.1.4

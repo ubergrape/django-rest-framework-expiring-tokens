@@ -23,5 +23,6 @@ def run():
     failures = test_runner.run_tests(["tests"])
     sys.exit(bool(failures))
 
+
 if __name__ == "__main__":
     run()

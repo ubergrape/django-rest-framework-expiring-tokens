@@ -9,6 +9,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from rest_framework_expiring_authtoken.models import ExpiringToken
+from rest_framework.authtoken.models import Token
 
 
 class ObtainExpiringTokenViewTestCase(APITestCase):
@@ -131,3 +132,18 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(ExpiringToken.objects.count(), 0)
+
+    def test_two_tokens(self):
+        """
+        tests if the user can have one long and one short living token.
+        """
+        self.assertEqual(ExpiringToken.objects.count(), 0)
+        self.assertEqual(Token.objects.count(), 0)
+
+        _ = ExpiringToken.objects.get_or_create(user=self.user)
+        self.assertEqual(ExpiringToken.objects.count(), 1)
+        self.assertEqual(Token.objects.count(), 0)
+
+        _ = Token.objects.get_or_create(user=self.user)
+        self.assertEqual(ExpiringToken.objects.count(), 1)
+        self.assertEqual(Token.objects.count(), 1)
