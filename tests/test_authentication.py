@@ -38,18 +38,12 @@ class ExpiringTokenAuthenticationTestCase(TestCase):
     def test_valid_token(self):
         """Check that a valid token authenticates correctly."""
         result = self.test_instance.authenticate_credentials(self.key)
-
         self.assertEqual(result[0], self.user)
         self.assertEqual(result[1], self.token)
 
     def test_invalid_token(self):
         """Check that an invalid token does not authenticated."""
-        try:
-            self.test_instance.authenticate_credentials('xyz789')
-        except AuthenticationFailed as e:
-            self.assertEqual(e.__str__(), 'Invalid token')
-        else:
-            self.fail("AuthenticationFailed not raised.")
+        self.assertIsNone(self.test_instance.authenticate_credentials('xyz789'))
 
     def test_inactive_user(self):
         """Check that a token for an inactive user cannot authenticate."""
