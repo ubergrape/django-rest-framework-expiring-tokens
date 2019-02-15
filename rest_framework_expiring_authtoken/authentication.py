@@ -25,7 +25,10 @@ class ExpiringTokenAuthentication(TokenAuthentication):
         try:
             token = self.model.objects.get(key=key)
         except self.model.DoesNotExist:
-            raise exceptions.AuthenticationFailed('Invalid token')
+            """
+            dont interrupt the chain of token validation auth backends.
+            """
+            return None
 
         if not token.user.is_active:
             raise exceptions.AuthenticationFailed('User inactive or deleted')
