@@ -93,6 +93,28 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
             }
         )
 
+    def test_post_with_auth_class_missing_otp(self):
+        with self.settings(BASIC_AUTH_CLASS='tests.TestAuthenticationClass'):
+            response = self.client.post(
+                self.url,
+                {
+                    'username': "franz",
+                    'password': "password",
+                }
+            )
+            self.assertEqual(response.status_code, 400)
+
+    def test_post_with_auth_class_with_otp(self):
+        with self.settings(BASIC_AUTH_CLASS='tests.TestAuthenticationClass'):
+            response = self.client.post(
+                "{}?otp=warglbargl".format(self.url),
+                {
+                    'username': "franz",
+                    'password': "password",
+                }
+            )
+            self.assertEqual(response.status_code, 200)
+
     def test_post_expired_token(self):
         """Check that expired tokens are replaced."""
         token = ExpiringToken.objects.create(user=self.user)
@@ -121,7 +143,7 @@ class ObtainExpiringTokenViewTestCase(APITestCase):
     def test_delete_token(self):
         _ = ExpiringToken.objects.create(user=self.user)
         self.assertEqual(ExpiringToken.objects.count(), 1)
-        
+
         response = self.client.delete(
             '/auth-token/',
             {
